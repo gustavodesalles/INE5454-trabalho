@@ -8,24 +8,38 @@ class NotasFiscaisSpider(scrapy.Spider):
     # Offset inicial
     offset = 0
 
-    # Partes da URL da request
-    url1 = 'https://portaldatransparencia.gov.br/notas-fiscais/consulta/resultado?paginacaoSimples=true&tamanhoPagina=15&offset='
-    url2 = '&direcaoOrdenacao=asc&colunaOrdenacao=municipioFornecedor&de=01%2F10%2F2024&ate=31%2F10%2F2024&colunasSelecionadas=linkDetalhamento%2CorgaoSuperiorDestinatario%2CorgaoDestinatario%2CnomeFornecedor%2CcnpjFornecedor%2CmunicipioFornecedor%2CufFornecedor%2CchaveNotaFiscal%2CvalorNotaFiscal%2CdataEmissao%2CtipoEventoMaisRecente%2Cnumero%2Cserie&_=1729086835821'
-    url_nf = 'https://portaldatransparencia.gov.br/notas-fiscais/'
+    # Tamanho da página
+    tamanho_pagina = 20
 
-    # Para 'driblar' o robots.txt
-    # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0'}
+    # Datas de início e fim
+    data_inicial = ['01','09','2024']
+    # data_final = ['01','09','2024']
+    data_final = []
+
+    # UFs dos fornecedores
+    # ufs_fornecedores = ['PA', 'SC']
+    ufs_fornecedores = []
+    separador_uf = '%2C'
+
+    # Partes da URL da request
+    url1 = f'https://portaldatransparencia.gov.br/notas-fiscais/consulta/resultado?paginacaoSimples=true&tamanhoPagina={tamanho_pagina}&offset='
+    url2 = '&direcaoOrdenacao=asc&colunaOrdenacao=municipioFornecedor'
+    url_uf = f'&ufFornecedor={separador_uf.join(ufs_fornecedores)}' if ufs_fornecedores else ''
+    url_de = f'&de={data_inicial[0]}%2F{data_inicial[1]}%2F{data_inicial[2]}' if len(data_inicial) == 3 else ''
+    url_ate = f'&ate={data_final[0]}%2F{data_final[1]}%2F{data_inicial[2]}' if len(data_final) == 3 else ''
+    url3 = '&colunasSelecionadas=linkDetalhamento%2CorgaoSuperiorDestinatario%2CorgaoDestinatario%2CnomeFornecedor%2CcnpjFornecedor%2CmunicipioFornecedor%2CufFornecedor%2CchaveNotaFiscal%2CvalorNotaFiscal%2CdataEmissao%2CtipoEventoMaisRecente%2Cnumero%2Cserie&_=1729086835821'
+    url_nf = 'https://portaldatransparencia.gov.br/notas-fiscais/'
 
     # Monta URL e faz request da API
     def start_requests(self):
-        url = self.url1 + str(self.offset) + self.url2
+        url = self.url1 + str(self.offset) + self.url2 + self.url_uf + self.url_de + self.url_ate + self.url3
         yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
         # Obtém informações do JSON em formato de lista de dicionários
         respData = json.loads(response.body).get('data', [])
 
-        if len(respData) == 0 or self.offset == 60: # Se não houver mais dados, encerra o crawl
+        if len(respData) == 0 or self.offset >= 60: # Se não houver mais dados, encerra o crawl
             self.log("Consulta encerrada.")
             return
 
@@ -38,8 +52,8 @@ class NotasFiscaisSpider(scrapy.Spider):
             yield res
 
         # Incrementa o offset para buscar mais notas
-        self.offset += 15
-        next_url = self.url1 + str(self.offset) + self.url2
+        self.offset += self.tamanho_pagina
+        next_url = self.url1 + str(self.offset) + self.url2 + self.url_uf + self.url_de + self.url_ate + self.url3
         yield scrapy.Request(url=next_url, callback=self.parse)
 
     def parse2(self, response):
