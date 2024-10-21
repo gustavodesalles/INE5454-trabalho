@@ -3,7 +3,7 @@ import json
 
 class NotasFiscaisSpider(scrapy.Spider):
     name = "notas-fiscais"
-    # Executar o comando "scrapy crawl notas-fiscais -o output.csv"
+    # Executar o comando "scrapy crawl notas-fiscais -o output.csv" ou "scrapy crawl notas-fiscais -o output.json"
 
     # Offset inicial
     offset = 0
@@ -48,7 +48,7 @@ class NotasFiscaisSpider(scrapy.Spider):
             chave_nf = item.get('chaveNotaFiscal')
             municipio = item.get('municipioFornecedor') # Necessário pois a tela da nota fiscal individual não tem o município
             url_nf_completa = self.url_nf + chave_nf # Monta a URL da nota
-            res = scrapy.Request(url=url_nf_completa, callback=self.parse2, meta={'municipio': municipio}) # Passar o município ao parse2
+            res = scrapy.Request(url=url_nf_completa, callback=self.parse2, meta={'municipio': municipio, 'url_nota': url_nf_completa}) # Passar o município ao parse2
             yield res
 
         # Incrementa o offset para buscar mais notas
@@ -57,6 +57,7 @@ class NotasFiscaisSpider(scrapy.Spider):
         yield scrapy.Request(url=next_url, callback=self.parse)
 
     def parse2(self, response):
+        url_nota = response.meta.get('url_nota')
         chave_acesso = response.xpath('/html/body/main/div[2]/section[1]/div[1]/div[1]/span/text()').extract()
         valor = response.xpath('//html/body/main/div[2]/section[1]/div[1]/div[2]/span/text()').extract()
         modelo = response.xpath('//html/body/main/div[2]/section[1]/div[2]/div[1]/span/text()').extract()
@@ -108,5 +109,6 @@ class NotasFiscaisSpider(scrapy.Spider):
             "DESTINO DA OPERAÇÃO": destino_operacao,
             "CONSUMIDOR FINAL": consumidor_final,
             "PRESENÇA DO COMPRADOR": presenca_comprador,
-            "VALOR NOTA FISCAL": valor
+            "VALOR NOTA FISCAL": valor,
+            "URL NOTA FISCAL": url_nota
         }
