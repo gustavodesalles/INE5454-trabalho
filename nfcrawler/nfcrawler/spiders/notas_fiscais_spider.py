@@ -57,23 +57,23 @@ class NotasFiscaisSpider(scrapy.Spider):
         yield scrapy.Request(url=next_url, callback=self.parse)
 
     def parse2(self, response):
-        url_nota = response.meta.get('url_nota')
-        chave_acesso = response.xpath('/html/body/main/div[2]/section[1]/div[1]/div[1]/span/text()').extract()
-        valor = response.xpath('//html/body/main/div[2]/section[1]/div[1]/div[2]/span/text()').extract()
-        modelo = response.xpath('//html/body/main/div[2]/section[1]/div[2]/div[1]/span/text()').extract()
-        serie = response.xpath('//html/body/main/div[2]/section[1]/div[2]/div[2]/span/text()').extract()
-        numero = response.xpath('//html/body/main/div[2]/section[1]/div[2]/div[3]/span/text()').extract()
-        data_emissao = response.xpath('//html/body/main/div[2]/section[1]/div[2]/div[4]/span/text()').extract()
-        natureza_operacao = response.xpath('//html/body/main/div[2]/section[1]/div[3]/div[1]/span/text()').extract()
-        situacao = response.xpath('//html/body/main/div[2]/section[1]/div[3]/div[2]/span/text()').extract()
-        data_ultima_modificacao = response.xpath('//html/body/main/div[2]/section[1]/div[3]/div[3]/span/text()').extract()
+        url_nota = [response.meta.get('url_nota')]
+        chave_acesso = response.xpath('/html/body/main/div/div[2]/div[2]/section[1]/div[1]/div[1]/span/text()').extract()
+        valor = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[1]/div[2]/span/text()').extract()
+        modelo = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[2]/div[1]/span/text()').extract()
+        serie = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[2]/div[2]/span/text()').extract()
+        numero = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[2]/div[3]/span/text()').extract()
+        data_emissao = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[2]/div[4]/span/text()').extract()
+        natureza_operacao = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[3]/div[1]/span/text()').extract()
+        situacao = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[3]/div[2]/span/text()').extract()
+        data_ultima_modificacao = response.xpath('//html/body/main/div/div[2]/div[2]/section[1]/div[3]/div[3]/span/text()').extract()
 
         # Dados do emitente
         cnpj_emitente = response.xpath('//*[@id="emitente"]/div/div/div[1]/span/a/text()').extract()
         nome_razao_social_emitente = response.xpath('//*[@id="emitente"]/div/div/div[2]/span/text()').extract()
         nome_fantasia_emitente = response.xpath('//*[@id="emitente"]/div/div/div[3]/span/text()').extract()
         inscricao_estadual_emitente = response.xpath('//*[@id="emitente"]/div/div/div[4]/span/text()').extract()
-        municipio_fornecedor = response.meta.get('municipio')
+        municipio_fornecedor = [response.meta.get('municipio')]
         uf_emitente = response.xpath('//*[@id="emitente"]/div/div/div[5]/span/text()').extract()
 
         # Dados do destinatário
