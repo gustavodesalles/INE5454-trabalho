@@ -1,5 +1,10 @@
+import datetime
+
 import scrapy
 import json
+
+from scrapy.crawler import CrawlerProcess
+
 
 class NotasFiscaisSpider(scrapy.Spider):
     name = "notas-fiscais"
@@ -9,16 +14,17 @@ class NotasFiscaisSpider(scrapy.Spider):
     offset = 0
 
     # Tamanho da página
-    tamanho_pagina = 20
+    tamanho_pagina = 300
+
 
     # Datas de início e fim
     data_inicial = ['01','09','2024']
-    # data_final = ['01','09','2024']
-    data_final = []
+    data_final = ['30','11','2024']
+    # data_final = []
 
     # UFs dos fornecedores
-    # ufs_fornecedores = ['PA', 'SC']
-    ufs_fornecedores = []
+    ufs_fornecedores = ['SC']
+    # ufs_fornecedores = []
     separador_uf = '%2C'
 
     # Partes da URL da request
@@ -27,19 +33,19 @@ class NotasFiscaisSpider(scrapy.Spider):
     url_uf = f'&ufFornecedor={separador_uf.join(ufs_fornecedores)}' if ufs_fornecedores else ''
     url_de = f'&de={data_inicial[0]}%2F{data_inicial[1]}%2F{data_inicial[2]}' if len(data_inicial) == 3 else ''
     url_ate = f'&ate={data_final[0]}%2F{data_final[1]}%2F{data_inicial[2]}' if len(data_final) == 3 else ''
-    url3 = '&colunasSelecionadas=linkDetalhamento%2CorgaoSuperiorDestinatario%2CorgaoDestinatario%2CnomeFornecedor%2CcnpjFornecedor%2CmunicipioFornecedor%2CufFornecedor%2CchaveNotaFiscal%2CvalorNotaFiscal%2CdataEmissao%2CtipoEventoMaisRecente%2Cnumero%2Cserie&_=1729086835821'
+    url3 = '&colunasSelecionadas=linkDetalhamento%2CorgaoSuperiorDestinatario%2CorgaoDestinatario%2CnomeFornecedor%2CcnpjFornecedor%2CmunicipioFornecedor%2CufFornecedor%2CchaveNotaFiscal%2CvalorNotaFiscal%2CdataEmissao%2CtipoEventoMaisRecente%2Cnumero%2Cserie&_=1733179020594'
     url_nf = 'https://portaldatransparencia.gov.br/notas-fiscais/'
 
     # Monta URL e faz request da API
     def start_requests(self):
-        url = self.url1 + str(self.offset) + self.url2 + self.url_uf + self.url_de + self.url_ate + self.url3
+        url = self.url1 + str(self.offset) + self.url2 + self.url_de + self.url_ate + self.url_uf + self.url3
         yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
         # Obtém informações do JSON em formato de lista de dicionários
         respData = json.loads(response.body).get('data', [])
 
-        if len(respData) == 0 or self.offset >= 60: # Se não houver mais dados, encerra o crawl
+        if len(respData) == 0: # Se não houver mais dados, encerra o crawl
             self.log("Consulta encerrada.")
             return
 
@@ -112,3 +118,17 @@ class NotasFiscaisSpider(scrapy.Spider):
             "VALOR NOTA FISCAL": valor,
             "URL NOTA FISCAL": url_nota
         }
+
+def main():
+    settings = {
+        'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
+        'FEED_FORMAT': 'json',
+        'FEED_URI': 'output-notas-fiscais.json'
+    }
+
+    process = CrawlerProcess(settings)
+    process.crawl(NotasFiscaisSpider)
+    process.start()
+
+if __name__ == '__main__':
+    main()
