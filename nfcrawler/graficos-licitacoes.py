@@ -18,7 +18,7 @@ def main():
         plt.bar(xAxis, yAxis, color='blue', width=2)
         plt.xlabel('Data')
         plt.ylabel('Valor total')
-        plt.title(f'Contratos de {ano}')
+        plt.title(f'Licitações de {ano}')
         plt.gca().xaxis.set_major_locator(mdates.MonthLocator(bymonth=[3, 6, 9, 12]))
         plt.gcf().axes[0].yaxis.get_major_formatter().set_scientific(False)
 
